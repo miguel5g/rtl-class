@@ -1,0 +1,25 @@
+.productsMain {
+  display: flex;
+  flex-direction: column;
+  max-width: 768px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.search {
+  display: flex;
+  gap: 16px;
+  margin-top: 64px;
+}
+
+.search input {
+  width: 100%;
+}
+
+.productList {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  margin-top: 64px;
+  gap: 32px;
+}
+
