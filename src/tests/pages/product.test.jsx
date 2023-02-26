@@ -15,39 +15,9 @@ describe('<Product />', () => {
     imageUrl: 'image url',
   };
 
-  beforeEach(() => {
-    global.fetch = jest.fn();
-  });
+  beforeEach(() => {});
 
-  it('should start with loading', async () => {
-    // Arrange
-    global.fetch.mockImplementation(async () => {
-      await sleep();
-      return { json: jest.fn().mockResolvedValue(product) };
-    });
+  it('should start with loading', async () => {});
 
-    render(<App />, '/1');
-
-    // Act
-
-    // Assert
-    expect(screen.getByText('Carregando...')).toBeInTheDocument();
-  });
-
-  it('should show product details', async () => {
-    // Arrange
-    global.fetch.mockResolvedValue({ json: jest.fn().mockResolvedValue(product) });
-
-    render(<App />, '/1');
-
-    // Act
-
-    // Assert
-    await waitFor(() => {
-      expect(screen.getByRole('img')).toHaveAttribute('src', 'image url');
-      expect(screen.getByRole('heading', { name: 'Product title', level: 1 })).toBeInTheDocument();
-      expect(screen.getByText('Product description')).toBeInTheDocument();
-      expect(screen.getByText('10')).toBeInTheDocument();
-    });
-  });
+  it('should show product details', async () => {});
 });

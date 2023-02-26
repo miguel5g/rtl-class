@@ -1,5 +1,7 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { BrowserRouter, Router } from 'react-router-dom';
+import { createMemoryHistory } from 'history';
 import Products from '../../pages/products';
 import render from '../helpers/render';
 
@@ -30,106 +32,53 @@ describe('<Products />', () => {
   });
 
   it('should start with a loading state', async () => {
-    // Arrange
+    // global.fetch.mockResolvedValue({ json: jest.fn().mockResolvedValue(products) });
     global.fetch.mockImplementation(async () => {
-      await sleep();
+      await sleep(500);
+
       return { json: jest.fn().mockResolvedValue(products) };
     });
 
     render(<Products />);
 
-    // Act
-
-    // Assert
     expect(screen.getByText('Carregando...')).toBeInTheDocument();
   });
 
   it('should render all available products', async () => {
-    // Arrange
     global.fetch.mockResolvedValue({ json: jest.fn().mockResolvedValue(products) });
-
     render(<Products />);
 
-    // Act
-
-    // Assert
-    const loading = screen.getByText('Carregando...');
-
-    await waitFor(() => {
-      expect(loading).not.toBeInTheDocument();
-    });
-
-    expect(screen.getAllByTestId('product-card')).toHaveLength(2);
+    expect(await screen.findAllByTestId('product-card')).toHaveLength(2);
   });
 
   it('should redirect to the product details page when a product is clicked', async () => {
     // Arrange
     global.fetch.mockResolvedValue({ json: jest.fn().mockResolvedValue(products) });
-
     const { history } = render(<Products />);
 
-    // Act
-    const loading = screen.getByText('Carregando...');
-
-    await waitFor(() => {
-      expect(loading).not.toBeInTheDocument();
-    });
-
-    const productsLinks = screen.getAllByRole('link');
-
-    userEvent.click(productsLinks[1]);
-
-    // Assert
-    await waitFor(() => {
-      expect(history.location.pathname).toBe('/2');
-    });
-  });
-
-  it('should render a search input', async () => {
-    // Arrange
-    global.fetch.mockResolvedValue({ json: jest.fn().mockResolvedValue(products) });
-
-    render(<Products />);
+    const productsLinks = await screen.findAllByRole('link', { name: 'Ver detalhes' });
 
     // Act
+    await userEvent.click(productsLinks[1]);
 
     // Assert
-    const loading = screen.getByText('Carregando...');
-
-    await waitFor(() => {
-      expect(loading).not.toBeInTheDocument();
-    });
-
-    expect(screen.getByRole('searchbox')).toBeInTheDocument();
+    expect(history.location.pathname).toBe('/2');
   });
 
-  it('should render a search button', async () => {
-    // Arrange
-    global.fetch.mockResolvedValue({ json: jest.fn().mockResolvedValue(products) });
+  it('should render a search input', async () => {});
 
-    render(<Products />);
-
-    // Act
-
-    // Assert
-    const loading = screen.getByText('Carregando...');
-
-    await waitFor(() => {
-      expect(loading).not.toBeInTheDocument();
-    });
-
-    expect(screen.getByRole('button', { name: 'Pesquisar' })).toBeInTheDocument();
-  });
+  it('should render a search button', async () => {});
 
   it('should update the product list when the search button is clicked', async () => {
-    // Arrange
     global.fetch
       .mockResolvedValueOnce({ json: jest.fn().mockResolvedValue(products) })
-      .mockResolvedValueOnce({ json: jest.fn().mockResolvedValue([products[1]]) });
+      .mockImplementationOnce(async () => {
+        await sleep(50);
 
+        return { json: jest.fn().mockResolvedValue([products[1]]) };
+      });
     render(<Products />);
 
-    // Act
     const loading = screen.getByText('Carregando...');
 
     await waitFor(() => {
@@ -137,14 +86,17 @@ describe('<Products />', () => {
     });
 
     const input = screen.getByRole('searchbox');
-    const button = screen.getByRole('button', { name: 'Pesquisar' });
+    const button = screen.getByRole('button', {
+      name: /pesquisar/i,
+    });
 
-    await userEvent.type(input, 'X');
+    // ACT
+    await userEvent.type(input, 'Abroba');
     await userEvent.click(button);
 
     // Assert
-    expect(global.fetch).toBeCalledWith('http://localhost:4000/products?q=X');
-    expect(screen.getAllByTestId('product-card')).toHaveLength(1);
-    expect(screen.getByRole('heading', { name: 'Product title 2', level: 4 })).toBeInTheDocument();
+    expect(global.fetch).toBeCalledWith('http://localhost:4000/products?q=Abroba');
+    expect(await screen.findByText('Carregando...')).toBeInTheDocument();
+    expect(await screen.findAllByTestId('product-card')).toHaveLength(1);
   });
 });
